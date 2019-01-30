@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of Collision.
+ * This file is part of PhpStorm.
  *
  * (c) Nuno Maduro <enunomaduro@gmail.com>
  *
@@ -12,7 +12,7 @@
 namespace NunoMaduro\Collision\Contracts;
 
 /**
- * This is an Collision Argument Formatter contract.
+ * This is an Collision Argument Formatter implementation.
  *
  * @author Nuno Maduro <enunomaduro@gmail.com>
  */

@@ -16,7 +16,6 @@ use Whoops\Exception\Inspector;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use NunoMaduro\Collision\Contracts\Writer as WriterContract;
-use NunoMaduro\Collision\Contracts\Highlighter as HighlighterContract;
 use NunoMaduro\Collision\Contracts\ArgumentFormatter as ArgumentFormatterContract;
 
 /**
@@ -46,13 +45,6 @@ class Writer implements WriterContract
     protected $argumentFormatter;
 
     /**
-     * Holds an instance of the Highlighter.
-     *
-     * @var \NunoMaduro\Collision\Contracts\Highlighter
-     */
-    protected $highlighter;
-
-    /**
      * Ignores traces where the file string matches one
      * of the provided regex expressions.
      *
@@ -79,16 +71,11 @@ class Writer implements WriterContract
      *
      * @param \Symfony\Component\Console\Output\OutputInterface|null $output
      * @param \NunoMaduro\Collision\Contracts\ArgumentFormatter|null $argumentFormatter
-     * @param \NunoMaduro\Collision\Contracts\Highlighter|null $highlighter
      */
-    public function __construct(
-        OutputInterface $output = null,
-        ArgumentFormatterContract $argumentFormatter = null,
-        HighlighterContract $highlighter = null
-    ) {
+    public function __construct(OutputInterface $output = null, ArgumentFormatterContract $argumentFormatter = null)
+    {
         $this->output = $output ?: new ConsoleOutput;
         $this->argumentFormatter = $argumentFormatter ?: new ArgumentFormatter;
-        $this->highlighter = $highlighter ?: new Highlighter;
     }
 
     /**
@@ -212,11 +199,17 @@ class Writer implements WriterContract
      */
     protected function renderEditor(Frame $frame): WriterContract
     {
-        $this->render('at <fg=green>'.$frame->getFile().'</>'.':<fg=green>'.$frame->getLine().'</>');
+        $this->render('at <fg=green>'.$frame->getFile().'</>'.': <fg=green>'.$frame->getLine().'</>');
 
-        $content = $this->highlighter->highlight((string) $frame->getFileContents(), (int) $frame->getLine());
+        $range = $frame->getFileLines($frame->getLine() - 5, 10);
 
-        $this->output->writeln($content);
+        if (! empty($range)) {
+            foreach ($range as $k => $code) {
+                $line = $k + 1;
+                $code = $line === $frame->getLine() ? "<bg=red>$code</>" : $code;
+                $this->render("$line: $code", false);
+            }
+        }
 
         return $this;
     }
@@ -243,10 +236,10 @@ class Writer implements WriterContract
             $class = empty($frame->getClass()) ? '' : $frame->getClass().'::';
             $function = $frame->getFunction();
             $args = $this->argumentFormatter->format($frame->getArgs());
-            $pos = str_pad((int) $i + 1, 4, ' ');
+            $pos = str_pad($i + 1, 4, ' ');
 
             $this->render("<comment><fg=cyan>$pos</>$class$function($args)</comment>");
-            $this->render("    <fg=green>$file</>:<fg=green>$line</>", false);
+            $this->render("    <fg=green>$file</> : <fg=green>$line</>", false);
         }
 
         return $this;

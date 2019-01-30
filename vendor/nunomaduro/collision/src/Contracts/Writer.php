@@ -15,7 +15,7 @@ use Whoops\Exception\Inspector;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * This is the Collision Writer contract.
+ * This is the Collision writer interface.
  *
  * @author Nuno Maduro <enunomaduro@gmail.com>
  */
